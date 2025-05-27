@@ -1,8 +1,9 @@
 """ Utility script to convert to torchscript model"""
 
+import argparse
 import torch
 from models import Generator
-import argparse
+
 
 
 def trace(model):

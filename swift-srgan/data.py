@@ -1,5 +1,6 @@
 import os
 from PIL import Image
+from PIL.Image import Resampling
 from torchvision import transforms
 from torchvision.transforms.functional import to_tensor
 from torch.utils.data import Dataset
@@ -24,7 +25,7 @@ def train_hr_transform(crop_size):
 def train_lr_transform(crop_size, upscale_factor):
     return transforms.Compose([
         transforms.ToPILImage(),
-        transforms.Resize(crop_size // upscale_factor, interpolation=Image.BICUBIC),
+        transforms.Resize(crop_size // upscale_factor, interpolation=Resampling.BICUBIC),
         transforms.ToTensor()
     ])
 
@@ -64,8 +65,8 @@ class ValDataset(Dataset):
     def __getitem__(self, index):
         hr_image = Image.open(self.image_filenames[index]).convert('RGB')
         
-        lr_scale = transforms.Resize(self.crop_size // self.upscale_factor, interpolation=Image.BICUBIC)
-        hr_scale = transforms.Resize(self.crop_size, interpolation=Image.BICUBIC)
+        lr_scale = transforms.Resize(self.crop_size // self.upscale_factor, interpolation=Resampling.BICUBIC)
+        hr_scale = transforms.Resize(self.crop_size, interpolation=Resampling.BICUBIC)
         hr_image = transforms.CenterCrop(self.crop_size)(hr_image)
         lr_image = lr_scale(hr_image)
         hr_restore_img = hr_scale(lr_image)

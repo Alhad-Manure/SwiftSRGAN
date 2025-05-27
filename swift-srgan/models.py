@@ -4,7 +4,8 @@ from torch import nn
 
 class SeperableConv2d(nn.Module):
     def __init__(self, in_channels, out_channels, kernel_size, stride=1, padding=1, bias=True):
-        super(SeperableConv2d, self).__init__()
+        #super(SeperableConv2d, self).__init__()
+        super().__init__()
         self.depthwise = nn.Conv2d(
             in_channels,
             in_channels,
@@ -27,7 +28,8 @@ class SeperableConv2d(nn.Module):
     
 class ConvBlock(nn.Module):
     def __init__(self, in_channels, out_channels, use_act=True, use_bn=True, discriminator=False, **kwargs):
-        super(ConvBlock, self).__init__()
+        #super(ConvBlock, self).__init__()
+        super().__init__()
         
         self.use_act = use_act
         self.cnn = SeperableConv2d(in_channels, out_channels, **kwargs, bias=not use_bn)
@@ -40,7 +42,8 @@ class ConvBlock(nn.Module):
 
 class UpsampleBlock(nn.Module):
     def __init__(self, in_channels, scale_factor):
-        super(UpsampleBlock, self).__init__()
+        #super(UpsampleBlock, self).__init__()
+        super().__init__()
         
         self.conv = SeperableConv2d(in_channels, in_channels * scale_factor**2, kernel_size=3, stride=1, padding=1)
         self.ps = nn.PixelShuffle(scale_factor) # (in_channels * 4, H, W) -> (in_channels, H*2, W*2)
@@ -52,7 +55,8 @@ class UpsampleBlock(nn.Module):
 
 class ResidualBlock(nn.Module):
     def __init__(self, in_channels):
-        super(ResidualBlock, self).__init__()
+        #super(ResidualBlock, self).__init__()
+        super().__init__()
         
         self.block1 = ConvBlock(
             in_channels,
@@ -88,7 +92,8 @@ class Generator(nn.Module):
     """
 
     def __init__(self, in_channels: int = 3, num_channels: int = 64, num_blocks: int = 16, upscale_factor: int = 4):
-        super(Generator, self).__init__()
+        #super(Generator, self).__init__()
+        super().__init__()
         
         self.initial = ConvBlock(in_channels, num_channels, kernel_size=9, stride=1, padding=4, use_bn=False)
         self.residual = nn.Sequential(
@@ -122,7 +127,8 @@ class Discriminator(nn.Module):
         in_channels: int = 3,
         features: tuple = (64, 64, 128, 128, 256, 256, 512, 512),
     ) -> None: # Here "-> None" indicates return type which is optional
-        super(Discriminator, self).__init__()
+        #super(Discriminator, self).__init__()
+        super().__init__()
 
         blocks = []
         for idx, feature in enumerate(features):

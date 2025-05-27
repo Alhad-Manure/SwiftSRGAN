@@ -4,9 +4,10 @@ from torchvision.models import mobilenet_v2
 
 class GeneratorLoss(nn.Module):
     def __init__(self):
-        super(GeneratorLoss, self).__init__()
-        mobilenetV2 = mobilenet_v2(pretrained=True) # Have replaced vgg with mobilenetV2
-        loss_network = nn.Sequential(*list(mobilenetV2.features)).eval()
+        #super(GeneratorLoss, self).__init__()
+        super().__init__()
+        mobilenet_v2 = mobilenet_v2(pretrained=True) # Have replaced vgg with mobilenetV2
+        loss_network = nn.Sequential(*list(mobilenet_v2.features)).eval()
         for param in loss_network.parameters():
             param.requires_grad = False
         self.loss_network = loss_network
@@ -28,7 +29,8 @@ class GeneratorLoss(nn.Module):
 
 class TVLoss(nn.Module):
     def __init__(self, tv_loss_weight=1):
-        super(TVLoss, self).__init__()
+        #super(TVLoss, self).__init__()
+        super().__init__()
         self.tv_loss_weight = tv_loss_weight
 
     def forward(self, x):
