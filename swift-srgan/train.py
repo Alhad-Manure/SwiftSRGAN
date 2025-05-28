@@ -1,4 +1,6 @@
 import os
+os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "expandable_segments:True"
+
 import math
 import pandas as pd
 import torch
@@ -21,11 +23,15 @@ def main(opt):
     os.makedirs("./results", exist_ok=True)
     os.makedirs("./checkpoints", exist_ok=True)
     os.makedirs("./logs", exist_ok=True)
+    os.makedirs("./logValidImgs", exist_ok=True)
 
     CROP_SIZE = opt.crop_size
     UPSCALE_FACTOR = opt.upscale_factor
     NUM_EPOCHS = opt.num_epochs
     DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+    if DEVICE.type == "cuda":
+        torch.cuda.empty_cache()
 
     train_set = TrainDataset(
         "./dataset/train", crop_size=CROP_SIZE, upscale_factor=UPSCALE_FACTOR
@@ -180,6 +186,7 @@ def main(opt):
             index = 1
             for image in val_save_bar:
                 image = torchvision.utils.make_grid(image, nrow=3, padding=5)
+                out_path = "logValidImgs"
                 torchvision.utils.save_image(
                     image,
                     out_path + "epoch_%d_index_%d.png" % (epoch, index),
@@ -238,5 +245,6 @@ if __name__ == '__main__':
     parser.add_argument('--upscale_factor', default=4, type=int, choices=[2, 4, 8], help='super resolution upscale factor')
     parser.add_argument('--crop_size', default=96, type=int, help='training images crop size')
     parser.add_argument('--num_epochs', default=100, type=int, help='number of epochs to train')
+    parser.add_argument('--batch_size', default=32, type=int, help='batch size for training')
     opt = parser.parse_args()
     main(opt)

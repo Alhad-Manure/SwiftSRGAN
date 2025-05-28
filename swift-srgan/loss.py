@@ -6,8 +6,8 @@ class GeneratorLoss(nn.Module):
     def __init__(self):
         #super(GeneratorLoss, self).__init__()
         super().__init__()
-        mobilenet_v2 = mobilenet_v2(pretrained=True) # Have replaced vgg with mobilenetV2
-        loss_network = nn.Sequential(*list(mobilenet_v2.features)).eval()
+        vgg = mobilenet_v2(pretrained=True) # Have replaced vgg with mobilenetV2
+        loss_network = nn.Sequential(*list(vgg.features)).eval()
         for param in loss_network.parameters():
             param.requires_grad = False
         self.loss_network = loss_network
