@@ -186,7 +186,7 @@ def main(opt):
             index = 1
             for image in val_save_bar:
                 image = torchvision.utils.make_grid(image, nrow=3, padding=5)
-                out_path = "logValidImgs"
+                out_path = "logValidImgs/"
                 torchvision.utils.save_image(
                     image,
                     out_path + "epoch_%d_index_%d.png" % (epoch, index),
