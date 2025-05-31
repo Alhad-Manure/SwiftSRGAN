@@ -5,6 +5,7 @@ from torch import nn
 class SeperableConv2d(nn.Module):
     def __init__(self, in_channels, out_channels, kernel_size, stride=1, padding=1, bias=True):
         #super(SeperableConv2d, self).__init__()
+        print(f"SeperableConv2d: in_channels={in_channels}, out_channels={out_channels}, kernel_size={kernel_size}, stride={stride}, padding={padding}, bias={bias}")
         super().__init__()
         self.depthwise = nn.Conv2d(
             in_channels,
@@ -25,6 +26,34 @@ class SeperableConv2d(nn.Module):
         return self.pointwise(self.depthwise(x))
     
 
+class StackedSeparableConv(nn.Module):
+    def __init__(self, in_channels, out_channels, num_layers=5, stride=1, padding=1, bias=True):
+        super().__init__()
+        layers = []
+        kernel_size=3
+        for i in range(num_layers):
+            input_c = in_channels if i == 0 else out_channels
+            print("Called from StackedSeparableConv")
+            layers.append(
+                SeperableConv2d(input_c, out_channels, kernel_size=3, stride=1, padding=1, bias=bias)
+            )
+        self.net = nn.Sequential(*layers)
+
+    def forward(self, x):
+        return self.net(x)
+
+class StackedConvBlock(nn.Module):
+    def __init__(self, in_channels, out_channels, use_act=True, num_layers=5, use_bn=True, discriminator=False, **kwargs):
+        #super(ConvBlock, self).__init__()
+        super().__init__()
+        
+        self.use_act = use_act
+        self.cnn = StackedSeparableConv(in_channels, out_channels, num_layers, **kwargs, bias=not use_bn)
+        self.bn = nn.BatchNorm2d(out_channels) if use_bn else nn.Identity()
+        self.act = nn.LeakyReLU(0.2, inplace=True) if discriminator else nn.PReLU(num_parameters=out_channels)
+        
+    def forward(self, x):
+        return self.act(self.bn(self.cnn(x))) if self.use_act else self.bn(self.cnn(x))
     
 class ConvBlock(nn.Module):
     def __init__(self, in_channels, out_channels, use_act=True, use_bn=True, discriminator=False, **kwargs):
@@ -96,6 +125,7 @@ class Generator(nn.Module):
         super().__init__()
         
         self.initial = ConvBlock(in_channels, num_channels, kernel_size=9, stride=1, padding=4, use_bn=False)
+        #self.initial = StackedConvBlock(in_channels, num_channels, kernel_size=3, num_layers=5, stride=1, padding=4, use_bn=False)
         self.residual = nn.Sequential(
             *[ResidualBlock(num_channels) for _ in range(num_blocks)]
         )
