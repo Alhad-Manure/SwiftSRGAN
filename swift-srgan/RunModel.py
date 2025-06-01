@@ -7,16 +7,16 @@ import sys
 from models import Generator
 
 # ---------- CONFIGURATION ----------
-IMAGE_PATH = r'D:\\Mtech\\Sem2\\Mini_Project\\SRGAN\\Training1\\Results\\Test1.jpg'       # Change to your input image
+IMAGE_PATH = r'D:\\Mtech\\Sem2\\Mini_Project\\SRGAN\\Trainings\\Training2\\Results\\TestImgPairs\\Test1.JPG'       # Change to your input image
 MODEL_PATH = 'model.pt'        # Change to your .pt model path
-OUTPUT_PATH = r'D:\\Mtech\\Sem2\\Mini_Project\\SRGAN\\Training1\\Results\\Test1Output.JPG'     # Output image path
+OUTPUT_PATH = r'D:\\Mtech\\Sem2\\Mini_Project\\SRGAN\\Trainings\\Training2\\Results\\TestImgPairs\\Test12Output.JPG'     # Output image path
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 # -----------------------------------
 
 # 1. Load and preprocess image
 transform_input = transforms.Compose([
     #transforms.Resize((96, 96), interpolation=Image.BICUBIC),
-    transforms.Resize(96, interpolation=Resampling.BICUBIC),
+    transforms.Resize(128, interpolation=Resampling.BICUBIC),
     transforms.ToTensor()
 ])
 
@@ -29,7 +29,7 @@ input_tensor = transform_input(image).unsqueeze(0)  # shape: [1, 3, 96, 96]
 # model.eval()
 
 model = Generator()
-checkpoint = torch.load(r'D:\\Mtech\\Sem2\\Mini_Project\\SRGAN\\Training1\\Results\\netG_4x_epoch200.pth.tar', map_location=DEVICE)
+checkpoint = torch.load(r'D:\\Mtech\\Sem2\\Mini_Project\\SRGAN\\Trainings\\Training2\\Results\\Models\\netG_4x_epoch245.pth.tar', map_location=DEVICE)
 model.load_state_dict(checkpoint['model'])
 model.to(DEVICE)
 model.eval()
