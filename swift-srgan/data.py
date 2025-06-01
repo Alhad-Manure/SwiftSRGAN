@@ -36,7 +36,7 @@ def calculate_valid_crop_size(crop_size, upscale_factor):
     return crop_size - (crop_size % upscale_factor)
 
 
-def train_hr_transform(crop_size):
+def train_hr_transform(crop_size=512):
     return transforms.Compose([
         transforms.RandomCrop(crop_size, pad_if_needed=True),
         transforms.RandomVerticalFlip(p=0.25),
