@@ -1,9 +1,32 @@
 import os
+import random
 from PIL import Image
 from PIL.Image import Resampling
 from torchvision import transforms
-from torchvision.transforms.functional import to_tensor
+from torchvision.transforms.functional import to_tensor, pad, rotate, center_crop
 from torch.utils.data import Dataset
+
+class RandomReflectiveRotation:
+    def __init__(self, degrees, p=0.2, padding=95, output_size=512):
+        self.degrees = degrees if isinstance(degrees, (tuple, list)) else (-degrees, degrees)
+        self.p = p
+        self.padding = padding
+        self.output_size = output_size
+
+    def __call__(self, img):
+        if random.random() < self.p:
+            angle = random.uniform(*self.degrees)
+
+            # Reflect padding
+            img = pad(img, padding=self.padding, padding_mode='reflect')
+
+            # Rotate image
+            img = rotate(img, angle, interpolation=transforms.InterpolationMode.BICUBIC)
+
+            # Center crop back to original size
+            img = center_crop(img, output_size=[self.output_size, self.output_size])
+
+        return img
 
 def is_image_file(filename):
     return any(filename.endswith(extension) for extension in ['.png', '.jpg', '.jpeg', '.PNG', '.JPG', '.JPEG'])
@@ -16,8 +39,9 @@ def calculate_valid_crop_size(crop_size, upscale_factor):
 def train_hr_transform(crop_size):
     return transforms.Compose([
         transforms.RandomCrop(crop_size, pad_if_needed=True),
-        transforms.RandomVerticalFlip(p=0.3),
-        transforms.RandomHorizontalFlip(p=0.4),
+        transforms.RandomVerticalFlip(p=0.25),
+        transforms.RandomHorizontalFlip(p=0.3),
+        RandomReflectiveRotation(degrees=30, p=0.15, padding=95, output_size=crop_size),
         transforms.ToTensor(),
     ])
 
