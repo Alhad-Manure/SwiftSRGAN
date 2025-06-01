@@ -24,13 +24,11 @@ class SeperableConv2d(nn.Module):
         )
     def forward(self, x):
         return self.pointwise(self.depthwise(x))
-    
 
 class StackedSeparableConv(nn.Module):
-    def __init__(self, in_channels, out_channels, num_layers=5, stride=1, padding=1, bias=True):
+    def __init__(self, in_channels, out_channels, kernel_size=3, num_layers=5, stride=1, padding=1, bias=True):
         super().__init__()
         layers = []
-        kernel_size=3
         for i in range(num_layers):
             input_c = in_channels if i == 0 else out_channels
             print("Called from StackedSeparableConv")
@@ -43,7 +41,7 @@ class StackedSeparableConv(nn.Module):
         return self.net(x)
 
 class StackedConvBlock(nn.Module):
-    def __init__(self, in_channels, out_channels, use_act=True, num_layers=5, use_bn=True, discriminator=False, **kwargs):
+    def __init__(self, in_channels, out_channels, use_act=True, kernel_size=3, num_layers=5, use_bn=True, discriminator=False, **kwargs):
         #super(ConvBlock, self).__init__()
         super().__init__()
         
@@ -124,8 +122,8 @@ class Generator(nn.Module):
         #super(Generator, self).__init__()
         super().__init__()
         
-        self.initial = ConvBlock(in_channels, num_channels, kernel_size=9, stride=1, padding=4, use_bn=False)
-        #self.initial = StackedConvBlock(in_channels, num_channels, kernel_size=3, num_layers=5, stride=1, padding=4, use_bn=False)
+        #self.initial = ConvBlock(in_channels, num_channels, kernel_size=9, stride=1, padding=4, use_bn=False)
+        self.initial = StackedConvBlock(in_channels, num_channels, kernel_size=3, num_layers=5, stride=1, padding=4, use_bn=False)
         self.residual = nn.Sequential(
             *[ResidualBlock(num_channels) for _ in range(num_blocks)]
         )
