@@ -6,7 +6,7 @@ import pandas as pd
 import torch
 import torchvision
 from data import TrainDataset, ValDataset, display_transform
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, ConcatDataset
 from models import Generator, Discriminator
 from loss import GeneratorLoss
 from metric import ssim
@@ -33,12 +33,23 @@ def main(opt):
     if DEVICE.type == "cuda":
         torch.cuda.empty_cache()
 
-    train_set = TrainDataset(
+    train_set1 = TrainDataset(
         "./dataset/train", crop_size=CROP_SIZE, upscale_factor=UPSCALE_FACTOR
     )
-    val_set = ValDataset(
+    val_set1 = ValDataset(
         "./dataset/valid", crop_size=CROP_SIZE, upscale_factor=UPSCALE_FACTOR
     )
+
+    train_set2 = TrainDataset(
+        "./dataset/train", crop_size=CROP_SIZE, upscale_factor=UPSCALE_FACTOR
+    )
+    val_set2 = ValDataset(
+        "./dataset/valid", crop_size=CROP_SIZE, upscale_factor=UPSCALE_FACTOR
+    )
+
+    train_set = ConcatDataset([train_set1, train_set2])
+
+    val_set = ConcatDataset([val_set1, val_set2])
 
     train_loader = DataLoader(
         dataset=train_set,
