@@ -198,11 +198,13 @@ def main(opt):
             for image in val_save_bar:
                 image = torchvision.utils.make_grid(image, nrow=3, padding=5)
                 out_path = "logValidImgs/"
-                torchvision.utils.save_image(
-                    image,
-                    out_path + "epoch_%d_index_%d.png" % (epoch, index),
-                    padding=5,
-                )
+                #Avoiding too many image results from getting saved
+                if index % 16 == 0:
+                    torchvision.utils.save_image(
+                        image,
+                        out_path + "epoch_%d_index_%d.png" % (epoch, index),
+                        padding=5,
+                    )
                 index += 1
 
         # save model parameters
