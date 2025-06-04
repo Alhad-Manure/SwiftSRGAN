@@ -7,6 +7,7 @@ import torch
 import torchvision
 from data import TrainDataset, ValDataset, display_transform
 from torch.utils.data import DataLoader, ConcatDataset
+import torch.nn.functional as F
 from models import Generator, Discriminator
 from loss import GeneratorLoss
 from metric import ssim
@@ -109,7 +110,12 @@ def main(opt):
             netD.zero_grad()
             real_out = netD(hr_img).mean()
             fake_out = netD(sr_img).mean()
-            d_loss = 1 - real_out + fake_out
+            #d_loss = 1 - real_out + fake_out
+
+            d_loss_real = F.binary_cross_entropy_with_logits(real_out - fake_out.mean(), torch.ones_like(real_out))
+            d_loss_fake = F.binary_cross_entropy_with_logits(fake_out - real_out.mean(), torch.zeros_like(fake_out))
+            d_loss = (d_loss_real + d_loss_fake) / 2
+
             d_loss.backward(retain_graph=True)
             optimizerD.step()
 
@@ -120,8 +126,15 @@ def main(opt):
 
             sr_img = netG(lr_img)
             fake_out = netD(sr_img).mean()
+            real_out = netD(hr_img).mean()
 
-            g_loss = generator_criterion(fake_out, sr_img, hr_img)
+            '''
+            fake_images = generator(input_images)
+            real_labels = discriminator(target_images)
+            fake_labels = discriminator(fake_images)
+            '''
+
+            g_loss = generator_criterion(fake_out, real_out, sr_img, hr_img)
             g_loss.backward()
 
             optimizerG.step()
