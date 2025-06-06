@@ -8,6 +8,7 @@ import torchvision
 from data import TrainDataset, ValDataset, display_transform
 from torch.utils.data import DataLoader, ConcatDataset
 import torch.nn.functional as F
+from torch.optim.lr_scheduler import CosineAnnealingLR
 from models import Generator, Discriminator
 from loss import GeneratorLoss
 from metric import ssim
@@ -71,8 +72,16 @@ def main(opt):
 
     generator_criterion = GeneratorLoss().to(DEVICE)
 
+    '''
     optimizerG = torch.optim.AdamW(netG.parameters(), lr=1e-3)
     optimizerD = torch.optim.AdamW(netD.parameters(), lr=1e-3)
+    '''
+
+    optimizerG = torch.optim.AdamW(netG.parameters(), lr=5e-4, betas=(0.5, 0.999), weight_decay=1e-4)
+    optimizerD = torch.optim.AdamW(netD.parameters(), lr=2e-4, betas=(0.5, 0.999), weight_decay=1e-4)
+
+    schedulerG = CosineAnnealingLR(optimizerG, T_max=100000)
+    schedulerD = CosineAnnealingLR(optimizerD, T_max=100000)
 
     results = {
         "d_loss": [],
@@ -118,6 +127,7 @@ def main(opt):
 
             d_loss.backward(retain_graph=True)
             optimizerD.step()
+            schedulerD.step()
 
             ############################
             # (2) Update G network: minimize 1-D(G(z)) + Perception Loss + Image Loss + TV Loss
@@ -138,6 +148,7 @@ def main(opt):
             g_loss.backward()
 
             optimizerG.step()
+            schedulerG.step()
 
             # loss for current after before optimization
             running_results["g_loss"] += g_loss.item() * batch_size
