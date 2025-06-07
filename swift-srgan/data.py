@@ -49,7 +49,7 @@ def train_hr_transform(crop_size=512):
 def train_lr_transform(crop_size, upscale_factor):
     return transforms.Compose([
         transforms.ToPILImage(),
-        transforms.Resize(crop_size // upscale_factor, interpolation=Resampling.BICUBIC),
+        transforms.Resize(crop_size // upscale_factor, interpolation=Resampling.NEAREST),
         transforms.ToTensor()
     ])
 

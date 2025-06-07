@@ -2,6 +2,7 @@ import torch
 from torch import nn
 
 
+
 class SeperableConv2d(nn.Module):
     def __init__(self, in_channels, out_channels, kernel_size, stride=1, padding=1, bias=True):
         #super(SeperableConv2d, self).__init__()
@@ -52,6 +53,22 @@ class StackedConvBlock(nn.Module):
         
     def forward(self, x):
         return self.act(self.bn(self.cnn(x))) if self.use_act else self.bn(self.cnn(x))
+    
+class StackedFinalConvBlock(nn.Module):
+    def __init__(self, in_channels, mid_channels, out_channels):
+        super().__init__()
+        self.block = nn.Sequential(
+            nn.Conv2d(in_channels, mid_channels, kernel_size=3, stride=1, padding=1),
+            nn.LeakyReLU(0.2, inplace=True),
+
+            nn.Conv2d(mid_channels, mid_channels, kernel_size=3, stride=1, padding=1),
+            nn.LeakyReLU(0.2, inplace=True),
+
+            nn.Conv2d(mid_channels, out_channels, kernel_size=3, stride=1, padding=1)
+        )
+
+    def forward(self, x):
+        return self.block(x)
     
 class ConvBlock(nn.Module):
     def __init__(self, in_channels, out_channels, use_act=True, use_bn=True, discriminator=False, **kwargs):
@@ -119,6 +136,8 @@ class Generator(nn.Module):
     """
 
     def __init__(self, in_channels: int = 3, num_channels: int = 64, num_blocks: int = 16, upscale_factor: int = 4):
+        self.upscale_factor = upscale_factor
+        
         #super(Generator, self).__init__()
         super().__init__()
         
@@ -131,14 +150,24 @@ class Generator(nn.Module):
         self.upsampler = nn.Sequential(
             *[UpsampleBlock(num_channels, scale_factor=2) for _ in range(upscale_factor//2)]
         )
-        self.final_conv = SeperableConv2d(num_channels, in_channels, kernel_size=9, stride=1, padding=4)
+        #self.final_conv = SeperableConv2d(num_channels, in_channels, kernel_size=9, stride=1, padding=4)
+        self.final_conv = StackedFinalConvBlock(num_channels, num_channels // 2, in_channels)
         
     def forward(self, x):
+
+        # Bicubic or bilinear upsampling as global skip
+        skip = nn.functional.interpolate(x, scale_factor=self.upscale_factor, mode='bicubic', align_corners=False)
+
         initial = self.initial(x)
         x = self.residual(initial)
         x = self.convblock(x) + initial
         x = self.upsampler(x)
-        return (torch.tanh(self.final_conv(x)) + 1) / 2
+        sr = self.final_conv(x)
+
+        # Combine with skip
+        sr = sr + skip  # Global skip connection
+
+        return (torch.tanh(sr) + 1) / 2
 
 
 class Discriminator(nn.Module):
