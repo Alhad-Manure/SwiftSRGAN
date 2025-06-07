@@ -7,7 +7,7 @@ from models import Generator
 
 
 def trace(model):
-    x = torch.rand(1, 3, 96, 96)
+    x = torch.rand(1, 3, 512, 512)
     traced_model = torch.jit.trace(model, (x))
     return traced_model
 
