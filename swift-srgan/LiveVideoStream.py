@@ -1,6 +1,9 @@
 import os
+os.environ["OPENCV_FFMPEG_CAPTURE_OPTIONS"] = "thread_type;0|threads;1"
+os.environ["FFMPEG_THREADS"] = "1"
+
 import torch
-print(torch.version.cuda)
+#print(torch.version.cuda)
 import torchvision.transforms as transforms
 from PIL import Image
 from PIL.Image import Resampling
@@ -10,6 +13,8 @@ import time
 import threading
 from collections import deque
 
+
+
 #from models import Generator
 
 # ---------- CONFIGURATION ----------
@@ -18,10 +23,10 @@ from collections import deque
 WEBCAM_INDEX = 0
 # Set to video file path, or None to use webcam 
 #VIDEO_FILE_PATH = None
-VIDEO_FILE_PATH = r'D:\\Drone\\Video\\FPV\\WCE_record_0003_0000.mp4'
+VIDEO_FILE_PATH = './TestData/Video/En_WCE_record_0003_0000.mp4'
 
 #MODEL_PATH = r'D:\\Mtech\\Sem2\\Mini_Project\\SRGAN\\Trainings\\Training2\\Results\\Models\\netG_4x_epoch245.pth.tar'
-MODEL_PATH = r'D:\\Mtech\\Sem2\\Mini_Project\\SRGAN\\Trainings\\Training2\\Results\\Models\\optimized_model237.pt' 
+MODEL_PATH = './modelPts/optimized_model78.pt'
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 # Live streaming settings
@@ -66,11 +71,11 @@ class LiveSwiftSRGAN:
     def initialize_camera(self):
         """Initialize camera or video input"""
         if VIDEO_FILE_PATH:
-            self.cap = cv2.VideoCapture(VIDEO_FILE_PATH)
+            self.cap = cv2.VideoCapture(VIDEO_FILE_PATH, cv2.CAP_GSTREAMER)
             # For debugging purposes
             #print(f"Using video file: {VIDEO_FILE_PATH}")
         else:
-            self.cap = cv2.VideoCapture(WEBCAM_INDEX)
+            self.cap = cv2.VideoCapture(WEBCAM_INDEX, cv2.CAP_GSTREAMER)
             # For debugging purposes
             #print(f"Using webcam index: {WEBCAM_INDEX}")
             
@@ -321,15 +326,17 @@ def main():
     print("=" * 50)
     
     # Check if model exists
-    '''
+
     if not MODEL_PATH:
         print("Error: MODEL_PATH is not set. Please update the configuration section.")
         return
+
     '''
     if not MODEL_PATH or not os.path.exists(MODEL_PATH):
         print(f"Error: Model not found at {MODEL_PATH}")
         print("Please update MODEL_PATH in the configuration section.")
         return
+        '''
     
     # For debugging purposes
     #print(f"Model: {MODEL_PATH}")
