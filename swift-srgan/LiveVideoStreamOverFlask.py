@@ -35,7 +35,7 @@ QUALITY = 85  # JPEG quality for streaming (1-100)
 
 # Flask settings
 HOST = '0.0.0.0'  # Allow external connections
-PORT = 5000
+PORT = 8384
 DEBUG = False
 # -----------------------------------
 
