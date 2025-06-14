@@ -21,8 +21,8 @@ app = Flask(__name__)
 # ---------- CONFIGURATION ----------
 # Input sources (choose one)
 WEBCAM_INDEX = 0
-VIDEO_FILE_PATH = './TestData/Video/En_WCE_record_0003_0000.mp4'  # Set to None to use webcam
-MODEL_PATH = './modelPts/optimized_model78.pt'
+VIDEO_FILE_PATH = './TestData/Video/VID00008.mov'  # Set to None to use webcam
+MODEL_PATH = './modelPts/optimized_model_v2.pt'
 
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 
@@ -187,11 +187,20 @@ class FlaskSwiftSRGAN:
                     orig_resized = self.resize_for_display(self.current_original)
                     proc_resized = self.resize_for_display(self.current_processed)
                     
+                    '''
                     # Ensure both frames have the same dimensions
                     height = min(orig_resized.shape[0], proc_resized.shape[0])
                     orig_resized = orig_resized[:height, :]
                     proc_resized = proc_resized[:height, :]
-                    
+                    '''
+
+                    max_height = max(orig_resized.shape[0], proc_resized.shape[0])
+                    pad_height = max_height - orig_resized.shape[0]
+                    pad_top = pad_height // 2
+                    pad_bottom = pad_height - pad_top
+                    padding = ((pad_top, pad_bottom), (0, 0), (0, 0))
+                    orig_resized = np.pad(orig_resized, padding, mode='constant', constant_values=0)
+
                     self.current_combined = np.hstack([orig_resized, proc_resized])
                     
             else:
