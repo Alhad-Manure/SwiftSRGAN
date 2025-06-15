@@ -30,7 +30,7 @@ DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 TARGET_FPS = 30
 BUFFER_SIZE = 5
 SKIP_FRAMES = 1
-DISPLAY_SCALE = 0.6  # Reduced for web streaming
+DISPLAY_SCALE = 0.8  # Reduced for web streaming
 QUALITY = 85  # JPEG quality for streaming (1-100)
 
 # Flask settings
@@ -231,7 +231,7 @@ class FlaskSwiftSRGAN:
         
         # Draw background
         overlay = frame.copy()
-        cv2.rectangle(overlay, (10, 10), (300, 130), (0, 0, 0), -1)
+        cv2.rectangle(overlay, (10, 10), (overlay.shape[0]/3, overlay.shape[1]/3), (0, 0, 0), -1)
         cv2.addWeighted(overlay, 0.7, frame, 0.3, 0, frame)
         
         # Draw text
