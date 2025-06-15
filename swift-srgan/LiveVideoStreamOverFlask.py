@@ -33,6 +33,11 @@ SKIP_FRAMES = 1
 DISPLAY_SCALE = 0.8  # Reduced for web streaming
 QUALITY = 85  # JPEG quality for streaming (1-100)
 
+# WebM/H264 streaming settings (much better than JPEG)
+USE_H264 = True  # Use H264 instead of JPEG for better performance
+H264_BITRATE = 1000000  # 1Mbps
+H264_GOP = 30
+
 # Flask settings
 HOST = '0.0.0.0'  # Allow external connections
 PORT = 8384
@@ -108,7 +113,11 @@ class FlaskSwiftSRGAN:
         
     def frame_to_tensor(self, frame):
         """Convert OpenCV frame to tensor"""
+        
+        '''
+        PIL image and transform approach
         frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+  
         pil_image = Image.fromarray(frame_rgb)
         
         transform = transforms.Compose([
@@ -117,13 +126,37 @@ class FlaskSwiftSRGAN:
         ])
         
         return transform(pil_image)
+        '''
+
+        height, width = frame.shape[:2]
+        if width > 512 or height > 512:
+            frame = cv2.resize(frame, (512, 512), interpolation=cv2.INTER_CUBIC)
+            
+        frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         
+        # Direct numpy to tensor conversion (faster than PIL)
+        frame_normalized = frame_rgb.astype(np.float32) / 255.0
+        frame_tensor = torch.from_numpy(frame_normalized).permute(2, 0, 1)
+        
+        return frame_tensor
+
+
     def tensor_to_frame(self, tensor):
         """Convert tensor back to OpenCV frame"""
+
+        '''
+        PIL image and transform approach
         transform_output = transforms.ToPILImage()
         pil_image = transform_output(tensor.clamp(0, 1))
         frame_rgb = np.array(pil_image)
         frame_bgr = cv2.cvtColor(frame_rgb, cv2.COLOR_RGB2BGR)
+        return frame_bgr
+        '''
+
+        # Direct tensor to numpy conversion
+        tensor_cpu = tensor.cpu().clamp(0, 1)
+        frame_np = (tensor_cpu.permute(1, 2, 0).numpy() * 255).astype(np.uint8)
+        frame_bgr = cv2.cvtColor(frame_np, cv2.COLOR_RGB2BGR)
         return frame_bgr
         
     def process_frame(self, frame):
@@ -312,8 +345,23 @@ class FlaskSwiftSRGAN:
                 frame = np.zeros((480, 640, 3), dtype=np.uint8)
                 cv2.putText(frame, "No Video", (250, 240), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
             
+            '''Simple Encoding
             # Encode frame as JPEG
             encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), QUALITY]
+            result, encimg = cv2.imencode('.jpg', frame, encode_param)
+            '''
+
+            # Optimized encoding
+            if USE_H264 and frame.shape[0] > 0 and frame.shape[1] > 0:
+                # Use optimized JPEG with better settings
+                encode_param = [
+                    int(cv2.IMWRITE_JPEG_QUALITY), QUALITY,
+                    int(cv2.IMWRITE_JPEG_OPTIMIZE), 1,
+                    int(cv2.IMWRITE_JPEG_PROGRESSIVE), 1
+                ]
+            else:
+                encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), QUALITY]
+            
             result, encimg = cv2.imencode('.jpg', frame, encode_param)
             
             if result:
