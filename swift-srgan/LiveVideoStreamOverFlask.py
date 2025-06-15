@@ -178,13 +178,17 @@ class FlaskSwiftSRGAN:
                 processed_frame = self.process_frame(frame)
                 
                 # Store current frames for streaming
+                #DISPLAY_SCALE = 0.7
                 self.current_original = self.add_info_overlay(frame.copy(), "Original")
+                #DISPLAY_SCALE = 1.0
                 self.current_processed = self.add_info_overlay(processed_frame.copy(), "SRGAN Enhanced")
                 
                 # Create combined view
                 if self.current_original is not None and self.current_processed is not None:
                     # Resize for web display
+                    #DISPLAY_SCALE = 1.5
                     orig_resized = self.resize_for_display(self.current_original)
+                    #DISPLAY_SCALE = 0.5
                     proc_resized = self.resize_for_display(self.current_processed)
                     
                     '''
@@ -231,13 +235,20 @@ class FlaskSwiftSRGAN:
         
         # Draw background
         overlay = frame.copy()
-        cv2.rectangle(overlay, (10, 10), (overlay.shape[0]/3, overlay.shape[1]/3), (0, 0, 0), -1)
+        if title == "Original":
+            cv2.rectangle(overlay, (10, 10), (220, 130), (0, 0, 0), -1)
+        else:
+            cv2.rectangle(overlay, (10, 10), (int(overlay.shape[1]/7), int(overlay.shape[0]/10)), (0, 0, 0), -1)
         cv2.addWeighted(overlay, 0.7, frame, 0.3, 0, frame)
         
         # Draw text
         for i, line in enumerate(info_lines):
-            y_pos = 30 + i * 20
-            cv2.putText(frame, line, (15, y_pos), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
+            if title == "Original":
+                y_pos = 30 + i * 20
+                cv2.putText(frame, line, (15, y_pos), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
+            else:
+                y_pos = 50 + i * 30
+                cv2.putText(frame, line, (15, y_pos), cv2.FONT_HERSHEY_SIMPLEX, DISPLAY_SCALE, (0, 255, 0), 1)
             
         return frame
         
