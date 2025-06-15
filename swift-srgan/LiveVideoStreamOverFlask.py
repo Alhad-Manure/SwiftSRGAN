@@ -21,7 +21,7 @@ app = Flask(__name__)
 # ---------- CONFIGURATION ----------
 # Input sources (choose one)
 WEBCAM_INDEX = 0
-VIDEO_FILE_PATH = './TestData/Video/VID00008.mov'  # Set to None to use webcam
+VIDEO_FILE_PATH = './TestData/Video/FPS30.mp4'  # Set to None to use webcam
 MODEL_PATH = './modelPts/optimized_model_v2.pt'
 
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
