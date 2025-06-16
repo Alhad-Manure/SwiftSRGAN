@@ -21,7 +21,7 @@ app = Flask(__name__)
 # ---------- CONFIGURATION ----------
 # Input sources (choose one)
 WEBCAM_INDEX = 0
-VIDEO_FILE_PATH = './TestData/Video/FPS30.mp4'  # Set to None to use webcam
+VIDEO_FILE_PATH = './TestData/Video/TinyWildLife.mp4'  # Set to None to use webcam
 MODEL_PATH = './modelPts/optimized_model_v2.pt'
 
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -31,7 +31,7 @@ TARGET_FPS = 30
 BUFFER_SIZE = 5
 SKIP_FRAMES = 1
 DISPLAY_SCALE = 0.8  # Reduced for web streaming
-QUALITY = 85  # JPEG quality for streaming (1-100)
+QUALITY = 80  # JPEG quality for streaming (1-100)
 
 # WebM/H264 streaming settings (much better than JPEG)
 USE_H264 = True  # Use H264 instead of JPEG for better performance
@@ -271,7 +271,7 @@ class FlaskSwiftSRGAN:
         if title == "Original":
             cv2.rectangle(overlay, (10, 10), (220, 130), (0, 0, 0), -1)
         else:
-            cv2.rectangle(overlay, (10, 10), (int(overlay.shape[1]/7), int(overlay.shape[0]/10)), (0, 0, 0), -1)
+            cv2.rectangle(overlay, (10, 10), (320, 210), (0, 0, 0), -1)
         cv2.addWeighted(overlay, 0.7, frame, 0.3, 0, frame)
         
         # Draw text
